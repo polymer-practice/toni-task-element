@@ -1,0 +1,118 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../task-element/bower_components/iron-icons/iron-icons.html">
+
+
+<dom-module id="task-element">
+  <template>
+    <style>
+      :host {
+        --font-size: 18px;
+        --text-uppercase: uppercase;
+        --green: green;
+        --red: red;
+        --orange: orange;
+      }
+
+      .bullet{
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+      }
+      .bullet__icon{
+        margin-right: 6px;
+      }
+      .bullet__title{
+        font-size: var(--font-size);
+        text-transform: var(--text-uppercase);
+      }
+
+      .bullet__title--green{
+        color: var(--green);
+      }
+
+      .bullet__title--orange{
+        color: var(--orange);
+      }
+
+      .bullet__title--red{
+        color: var(--red);
+      }
+
+    </style>
+    <div class="bullet">
+      <iron-icon class="bullet__icon" icon="icons:radio-button-checked"></iron-icon>
+      <h3 class$="bullet__title [[status]]">[[titleBullet]]</h3>
+    </div>
+    <button class="button__valid" name="done" on-click="onClickButton" is="dom-if" if="[[estado]]">Valido</button>
+    <button class="button__pending" name="pending" on-click="onClickButton" is="dom-if" if="[[estado]]">Pending</button>
+    <button class="button__error" name="error" on-click="onClickButton" is="dom-if" if="[[estado]]">Error</button>
+  </template>
+
+  <script>
+    /**
+     * `task-element`
+     * 
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class TaskElement extends Polymer.Element {
+      static get is() { return 'task-element'; }
+      static get properties() {
+        return {
+          titleBullet: {
+            type: String,
+            value: 'Element title bullet Polymer'
+          },
+          isDone:{
+            type: Boolean,
+            value: false
+          },
+          isPending:{
+            type: Boolean,
+            value: false
+          },
+          isCanceled:{
+            type: Boolean,
+            value: false
+          },
+          status:{
+            type: String,
+            computed: "getResult(isDone, isCanceled)"
+          },
+          key: String,
+          estado: Boolean
+        };
+      }
+      getResult(isDone, isCanceled){
+        if(isDone){
+          return 'bullet__title--green'
+        }else if(isCanceled){
+          return 'bullet__title--red'
+        }else{
+          return 'bullet__title--orange'
+        }
+      };
+            /*Methods*/
+      onClickButton(e) {
+        let eventName = e.target.name;
+        let myEvent = new CustomEvent(
+          'eventName',
+          {
+            bubbles: true,
+            composed: true,
+            detail:{
+              key: this.key,
+              if: this.if
+
+            }
+          }
+        );
+        this.dispatchEvent(myEvent)
+      }
+    }
+
+    window.customElements.define(TaskElement.is, TaskElement);
+  </script>
+</dom-module>
