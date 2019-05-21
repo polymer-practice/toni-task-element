@@ -2,57 +2,92 @@
 <link rel="import" href="../iron-icons/iron-icons.html">
 <link rel="import" href="../iron-icon/iron-icon.html">
 
-
 <dom-module id="task-element">
   <template>
     <style>
       :host {
-        --font-size: 18px;
-        --text-uppercase: uppercase;
-        --green: green;
-        --red: red;
-        --orange: orange;
+        display: block;
+        --icon-size: var(--icon-size-task-element, 20px);
+        --primary-color: var(--primary-color-task-element, #3f51b5);
+        --secondary-color: var(--secondary-color-task-element, #fff);
+        --done-color: var(--done-color-task-element, #38E896);
+        --cancelled-color: var(--cancelled-color-task-element, #E82C3F);
+        --width-element: var(--width-element-task-element, 200px);
       }
-
-      .bullet{
+      .task-container {
+        display: flex;
+        flex-direction: column;
+      }
+      .element-item__title {
+        margin-left: 5px;
+      }
+      .task {
+        width: var(--width-element);
+        color: var(--primary-color);
         display: flex;
         align-items: center;
         justify-content: flex-start;
       }
-      .bullet__icon{
-        margin-right: 6px;
+      .element-item__title {
+        margin-left: 5px;
       }
-      .bullet__title{
-        font-size: var(--font-size);
-        text-transform: var(--text-uppercase);
+      .done {
+        color: green;
+        text-decoration: line-through;
       }
-
-      .bullet__title--green{
-        color: var(--green);
+      .canceled {
+        color: red;
+        text-decoration: line-through;
       }
-
-      .bullet__title--orange{
-        color: var(--orange);
+      .btn {
+        background-color: var(--primary-color);
+        color: var(--secoundary-color);
+        width: 70px;
+        height: 30px;
+        border-radius: 5px;
       }
-
-      .bullet__title--red{
-        color: var(--red);
+      .btn.done {
+        background-color: green;
+        text-decoration: none;
       }
-
+      .cancel {
+        background-color: red;
+      }
+      @media(min-width: 600px) {
+        .task-container {
+          flex-direction: row;
+          align-items: center;
+          justify-content: flex-start;
+        }
+      }
     </style>
-    <div class="bullet">
-      <iron-icon class="bullet__icon" icon="icons:radio-button-checked"></iron-icon>
-      <h3 class$="bullet__title [[status]]">[[titleBullet]]</h3>
+
+    <div class="task-container">
+
+
+      <div class$=[[status]]>
+        <iron-icon icon="icons:radio-button-checked"></iron-icon>
+        <h3 class="element-item__title">[[title]]</h3>
+      </div>
+      <div class="buttons-set">
+        <template is="dom-if" if=[[_showPending]]>
+          <button type="button" name="pending" on-click="onClickButton" class="btn pending">Pending</button>
+        </template>
+        <template is="dom-if" if=[[_showDone]]>
+          <button type="button" name="done" on-click="onClickButton" class="btn done">Done</button>
+        </template>
+        <template is="dom-if" if=[[_showCancel]]>
+          <button type="button" name="cancel" on-click="onClickButton" class="btn cancel">Cancel</button>
+        </template>
+      </div>
     </div>
-    <button class="button__valid" name="done" on-click="onClickButton" is="dom-if" if="[[estado]]">Valido</button>
-    <button class="button__pending" name="pending" on-click="onClickButton" is="dom-if" if="[[estado]]">Pending</button>
-    <button class="button__error" name="error" on-click="onClickButton" is="dom-if" if="[[estado]]">Error</button>
+
   </template>
 
   <script>
     /**
      * `task-element`
-     * 
+     *
      *
      * @customElement
      * @polymer
@@ -62,58 +97,67 @@
       static get is() { return 'task-element'; }
       static get properties() {
         return {
-          titleBullet: {
-            type: String,
-            value: 'Element title bullet Polymer'
-          },
-          isDone:{
-            type: Boolean,
-            value: false
-          },
-          isPending:{
-            type: Boolean,
-            value: false
-          },
-          isCanceled:{
-            type: Boolean,
-            value: false
-          },
-          status:{
-            type: String,
-            computed: "getResult(isDone, isCanceled)"
-          },
           key: String,
-          estado: Boolean
+          title: {
+            type: String,
+            value: 'Tarea: colleja a ale'
+          },
+          done: {
+            type: Boolean,
+            value: false
+          },
+          canceled: {
+            type: Boolean,
+            value: false
+          },
+          status: {
+            type: String,
+            computed: 'getStatus(done, canceled)'
+          },
+          _showPending: {
+            type: Boolean,
+            value: false
+          },
+          _showDone: {
+            type: Boolean,
+            value: true
+          },
+          _showCancel: {
+            type: Boolean,
+            value: true
+          }
         };
       }
-      getResult(isDone, isCanceled){
-        if(isDone){
-          return 'bullet__title--green'
-        }else if(isCanceled){
-          return 'bullet__title--red'
-        }else{
-          return 'bullet__title--orange'
-        }
-      };
-            /*Methods*/
-      onClickButton(e) {
-        let eventName = e.target.name;
+      onClickButton(event) {
+        let eventName = event.target.name;
         let myEvent = new CustomEvent(
-          'eventName',
+          eventName,
           {
             bubbles: true,
             composed: true,
-            detail:{
-              key: this.key,
-              if: this.if
-
+            detail: {
+              key: this.key
             }
           }
         );
-        this.dispatchEvent(myEvent)
+        this.dispatchEvent(myEvent);
+      }
+      getStatus(done, canceled) {
+        let result = 'task';
+        if (done) {
+          result +=' done';
+          this._showPending = true;
+          this._showDone = false;
+          this._showCancel = true;
+        } else if (canceled) {
+          result +=' canceled'
+          this._showPending = true;
+          this._showDone = true;
+          this._showCancel = false;
+        }
+        return result;
       }
     }
-
     window.customElements.define(TaskElement.is, TaskElement);
   </script>
 </dom-module>
